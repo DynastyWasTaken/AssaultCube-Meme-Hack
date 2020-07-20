@@ -190,7 +190,7 @@ DWORD WINAPI HackThread(HMODULE hModule)
                     enemyHp = (int*)enemyHpAddr;
                     //std::cout << "enemy hp - " << *enemyHp << std::endl;
 
-                    if (*enemyHp <= 100 && *enemyHp > 0)
+                    if (*enemyHp <= 0 || *enemyHp > 100)
                     {
                         //std::cout << "Safety: trying to continue\n";
                         if (*enemyHp)
