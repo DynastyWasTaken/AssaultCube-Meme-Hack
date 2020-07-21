@@ -20,7 +20,7 @@ public:
     char pad_00FC[297]; //0x00FC
     char name[16]; //0x0225
     char pad_0235[319]; //0x0235
-    class weapon* currweapon; //0x0374
+    class weapon* currentWeapon; //0x0374
 
     virtual void Function0(); //fuck this
     virtual void Function1();
@@ -40,20 +40,20 @@ class weapon
 {
 public:
     char pad_0000[20]; //0x0000
-    class ammoinclip* N00000285; //0x0014
+    class ammoInClip* pAmmo; //0x0014
 }; //Size: 0x0018
 static_assert(sizeof(weapon) == 0x18);
 
-class ammoinclip
+class ammoInClip
 {
 public:
-    int32_t ammoptr; //0x0000
+    int32_t ammo; //0x0000
 }; //Size: 0x0004
-static_assert(sizeof(ammoinclip) == 0x4);
+static_assert(sizeof(ammoInClip) == 0x4);
 
 //im going insane
 
-DWORD WINAPI HackThread(HMODULE hModule)
+DWORD WINAPI hackThread(HMODULE hModule)
 {
     /*Pseudocode
     -add console x
@@ -66,19 +66,19 @@ DWORD WINAPI HackThread(HMODULE hModule)
 
     //opening console
     AllocConsole();
-    FILE* f;
-    freopen_s(&f, "CONOUT$", "w", stdout);
+    FILE* file;
+    freopen_s(&file, "CONOUT$", "w", stdout);
 
-    std::cout << "Iridium - internal meme trainer\n"; \
-
-        std::cout << " F1: Health hack\n F2: Ammo Hack\n F3: NoRecoil\n F5: Team Switch\n F9: Nuker\n HOME: info\n INSERT: uninject" << std::endl;
+    std::cout << "Iridium - internal meme trainer\n";
+    
+    std::cout << " F1: Health hack\n F2: Ammo Hack\n F3: NoRecoil\n F5: Team Switch\n F9: Nuker\n HOME: info\n INSERT: uninject" << std::endl;
 
     //defining a lot of shit
     uintptr_t moduleBase = (uintptr_t)GetModuleHandle(L"ac_client.exe");
 
     uintptr_t pLocalPlayer = (uintptr_t)(moduleBase + 0x10f4f4);
 
-    ent* LocalPlayer = *(ent**)(moduleBase + 0x10f4f4);
+    ent* localPlayer = *(ent**)(moduleBase + 0x10f4f4);
 
     uintptr_t pEntity = (uintptr_t)(moduleBase + 0x10f4f8);
 
@@ -89,14 +89,18 @@ DWORD WINAPI HackThread(HMODULE hModule)
 
     uintptr_t entNum = (uintptr_t)(moduleBase + 0x110d98);
 
-    bool bHealth = false, bAmmo = false, bRecoil = false,
-        bShowAmountOfPlayers = false, bNuke = false, bTpTy = false;
+    bool    bHealth                 = false,
+            bAmmo                   = false,
+            bRecoil                 = false,
+            bShowAmountOfPlayers    = false,
+            bNuke                   = false,
+            bTpTy                   = false;
 
     uintptr_t entity = mem::FindDMAAddy(pEntity, { 0x4 });
 
-    uintptr_t Frags;
+    uintptr_t pFrags;
 
-    Frags = mem::FindDMAAddy(pLocalPlayer, { 0x1FC });
+    pFrags = mem::FindDMAAddy(pLocalPlayer, { 0x1FC });
 
     //main loop
     while (true)
@@ -131,7 +135,7 @@ DWORD WINAPI HackThread(HMODULE hModule)
         //set frags to 1337
         if (GetAsyncKeyState(VK_NUMPAD6) & 1)
         {
-            *(int*)Frags = 1337;
+            *(int*)pFrags = 1337;
         }
 
         //info. Usually only for debugging
@@ -144,9 +148,9 @@ DWORD WINAPI HackThread(HMODULE hModule)
 
             std::cout << "current team - " << *(int*)pMyTeam << "\n";
 
-            std::cout << "Frags - " << *(int*)Frags << "\n";
+            std::cout << "Frags - " << *(int*)pFrags << "\n";
 
-            std::cout << "player X Y Z: " << LocalPlayer->body.x << " " << LocalPlayer->body.y << " " << LocalPlayer->body.z << std::endl;
+            std::cout << "player X Y Z: " << localPlayer->body.x << " " << localPlayer->body.y << " " << localPlayer->body.z << std::endl;
 
             std::cout << "Health - " << *(int*)mem::FindDMAAddy(pLocalPlayer, { 0xF8 }) << "\n";
         }
@@ -168,19 +172,19 @@ DWORD WINAPI HackThread(HMODULE hModule)
 
             float oldX, oldY, oldZ;
 
-            oldX = LocalPlayer->body.x;
-            oldY = LocalPlayer->body.y;
-            oldZ = LocalPlayer->body.z;
+            oldX = localPlayer->body.x;
+            oldY = localPlayer->body.y;
+            oldZ = localPlayer->body.z;
 
-            uintptr_t ptrPlayerX, ptrPlayerY, ptrPlayerZ;
+            uintptr_t pPlayerX, pPlayerY, pPlayerZ;
             float* playerX, * playerY, * playerZ;
 
-            ptrPlayerX = mem::FindDMAAddy(pLocalPlayer, { 0x3C });
-            playerX = (float*)ptrPlayerX;
-            ptrPlayerY = mem::FindDMAAddy(pLocalPlayer, { 0x3C });
-            playerY = (float*)ptrPlayerY;
-            ptrPlayerZ = mem::FindDMAAddy(pLocalPlayer, { 0x3C });
-            playerZ = (float*)ptrPlayerZ;
+            pPlayerX     = mem::FindDMAAddy(pLocalPlayer, { 0x3C });
+            playerX      = (float*)pPlayerX;
+            pPlayerY     = mem::FindDMAAddy(pLocalPlayer, { 0x3C });
+            playerY      = (float*)pPlayerY;
+            pPlayerZ     = mem::FindDMAAddy(pLocalPlayer, { 0x3C });
+            playerZ      = (float*)pPlayerZ;
 
             //i use all cout's for debug purposes btw :D
 
@@ -266,16 +270,16 @@ DWORD WINAPI HackThread(HMODULE hModule)
         {
             if (bHealth)
             {
-                LocalPlayer->health = 1337;
+                localPlayer->health = 1337;
             }
             if (bAmmo)
             {
-                LocalPlayer->currweapon->N00000285->ammoptr = 1337; //ignore N00000285. It should be LocalPlayer->currweapon->ammoptr->ammo.
+                localPlayer->currentWeapon->pAmmo->ammo = 1337; //ignore N00000285. It should be LocalPlayer->currweapon->ammoptr->ammo.
             }
         }
         Sleep(5); //o   p   t   i   m   i   s   a   t   i   o   n
     }
-    fclose(f);
+    fclose(file);
     FreeConsole();
     FreeLibraryAndExitThread(hModule, 0);
     return 0;
@@ -290,7 +294,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     {
     case DLL_PROCESS_ATTACH:
     {
-        CloseHandle(CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE)HackThread, hModule, 0, nullptr));
+        CloseHandle(CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE)hackThread, hModule, 0, nullptr));
     }
     case DLL_THREAD_ATTACH:
     case DLL_THREAD_DETACH:
