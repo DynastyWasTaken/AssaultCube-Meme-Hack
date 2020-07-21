@@ -69,7 +69,7 @@ DWORD WINAPI HackThread(HMODULE hModule)
     FILE* f;
     freopen_s(&f, "CONOUT$", "w", stdout);
 
-    std::cout << "Iridium - internal meme\n"; \
+    std::cout << "Iridium - internal meme trainer\n"; \
 
         std::cout << " F1: Health hack\n F2: Ammo Hack\n F3: NoRecoil\n F5: Team Switch\n F9: Nuker\n HOME: info\n INSERT: uninject" << std::endl;
 
