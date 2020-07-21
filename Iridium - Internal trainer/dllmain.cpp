@@ -66,12 +66,12 @@ DWORD WINAPI HackThread(HMODULE hModule)
 
     //opening console
     AllocConsole();
-    FILE* f; 
+    FILE* f;
     freopen_s(&f, "CONOUT$", "w", stdout);
-    
+
     std::cout << "Iridium - internal meme\n"; \
 
-    std::cout << " F1: Health hack\n F2: Ammo Hack\n F3: NoRecoil\n F5: Team Switch\n F9: Nuker\n HOME: info\n INSERT: uninject" << std::endl;
+        std::cout << " F1: Health hack\n F2: Ammo Hack\n F3: NoRecoil\n F5: Team Switch\n F9: Nuker\n HOME: info\n INSERT: uninject" << std::endl;
 
     //defining a lot of shit
     uintptr_t moduleBase = (uintptr_t)GetModuleHandle(L"ac_client.exe");
@@ -89,7 +89,7 @@ DWORD WINAPI HackThread(HMODULE hModule)
 
     uintptr_t entNum = (uintptr_t)(moduleBase + 0x110d98);
 
-    bool bHealth = false, bAmmo = false, bRecoil = false, 
+    bool bHealth = false, bAmmo = false, bRecoil = false,
         bShowAmountOfPlayers = false, bNuke = false, bTpTy = false;
 
     uintptr_t entity = mem::FindDMAAddy(pEntity, { 0x4 });
@@ -101,7 +101,6 @@ DWORD WINAPI HackThread(HMODULE hModule)
     //main loop
     while (true)
     {
-
         if (GetAsyncKeyState(VK_NUMPAD1) & 1)
         {
             bHealth = !bHealth;
@@ -140,32 +139,28 @@ DWORD WINAPI HackThread(HMODULE hModule)
         {
             int* entCount = (int*)entNum;
 
-            if(entCount)
-            std::cout << "players ingame - " << *entCount + 1 << "\n";
+            if (entCount)
+                std::cout << "players ingame - " << *entCount + 1 << "\n";
 
             std::cout << "current team - " << *(int*)pMyTeam << "\n";
 
             std::cout << "Frags - " << *(int*)Frags << "\n";
 
-            std::cout << "player X Y Z: " << LocalPlayer->body.x << " " <<  LocalPlayer->body.y << " " << LocalPlayer->body.z << std::endl;
+            std::cout << "player X Y Z: " << LocalPlayer->body.x << " " << LocalPlayer->body.y << " " << LocalPlayer->body.z << std::endl;
 
-            std::cout << "Health - " << *(int*)mem::FindDMAAddy(pLocalPlayer, { 0xF8 }) << "\n"; 
+            std::cout << "Health - " << *(int*)mem::FindDMAAddy(pLocalPlayer, { 0xF8 }) << "\n";
         }
 
 
-        //bullshit code starts here (Nuker v1)!
-        //TODO:
-        //literally rework everything here
+        //bullshit code starts here (Nuker v2)!
+        //crash fixed.
         if (GetAsyncKeyState(VK_NUMPAD9) & 1)
         {
+            int* entCount = (int*)entNum;
+
             bNuke = !bNuke;
-            uintptr_t pMyTeam = mem::FindDMAAddy(moduleBase + 0x10f4f4, { 0x32C });
 
             int* myTeam = (int*)pMyTeam;
-            //std::cout << "current team - " << *myTeam << "\n";
-
-            int* entCount = (int*)entNum;
-            //std::cout << "amout of entity's - " << *entCount << "\n";
 
             int entity = mem::FindDMAAddy(pEntity, { 0x4 });
 
@@ -177,71 +172,69 @@ DWORD WINAPI HackThread(HMODULE hModule)
             oldY = LocalPlayer->body.y;
             oldZ = LocalPlayer->body.z;
 
+            uintptr_t ptrPlayerX, ptrPlayerY, ptrPlayerZ;
+            float* playerX, * playerY, * playerZ;
+
+            ptrPlayerX = mem::FindDMAAddy(pLocalPlayer, { 0x3C });
+            playerX = (float*)ptrPlayerX;
+            ptrPlayerY = mem::FindDMAAddy(pLocalPlayer, { 0x3C });
+            playerY = (float*)ptrPlayerY;
+            ptrPlayerZ = mem::FindDMAAddy(pLocalPlayer, { 0x3C });
+            playerZ = (float*)ptrPlayerZ;
+
             //i use all cout's for debug purposes btw :D
 
             for (int Count = 0; Count < *entCount; ++Count, entity += 0x4)
             {
-                //std::cout << *entCount << "\n";
+                int* enemyHp = 0;
+                uintptr_t enemyHpAddr = mem::FindDMAAddy(entity, { 0xF8 });
+                enemyHp = (int*)enemyHpAddr;
                 if (bNuke)
                 {
                     NukeCount++;
-                    int* enemyHp = 0;
-                    uintptr_t enemyHpAddr = mem::FindDMAAddy(entity, { 0xF8 });
-                    enemyHp = (int*)enemyHpAddr;
-                    //std::cout << "enemy hp - " << *enemyHp << std::endl;
-
-                    if (*enemyHp <= 0 || *enemyHp > 100)
+                    if (*enemyHp != NULL)
                     {
-                        //std::cout << "Safety: trying to continue\n";
+                        if (*enemyHp <= 100 && *enemyHp > 0)
+                        {
+                            uintptr_t enemyX, enemyY, enemyZ;
+                            float* EactualX, * EactualY, * EactualZ;
+
+                            enemyX = mem::FindDMAAddy(entity, { 0x34 });
+                            EactualX = (float*)enemyX;
+                            enemyY = mem::FindDMAAddy(entity, { 0x38 });
+                            EactualY = (float*)enemyY;
+                            enemyZ = mem::FindDMAAddy(entity, { 0x3C });
+                            EactualZ = (float*)enemyZ;
+
+                            while (*enemyHp > 0)
+                            {
+                                if (NukeCount <= *entCount)
+                                {
+                                    *playerX = *EactualX;
+                                    *playerY = *EactualY;
+                                    *playerZ = *EactualZ;
+                                    Sleep(5);
+                                }
+                                else
+                                {
+                                    bNuke = !bNuke;
+                                    *playerX = oldX;
+                                    *playerY = oldY;
+                                    *playerZ = oldZ;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
                         if (*enemyHp)
                         {
-                            //std::cout << "Safety: adding 0x4 to entity\n";
                             entity += 0x4;
                         }
                         else
                         {
-                            //std::cout << "Safety: seetting entity to 0x4\n";
                             entity = mem::FindDMAAddy(pEntity, { 0x4 });
                         }
-                    }
-
-
-                    uintptr_t enemyX, enemyY, enemyZ;
-                    float* EactualX, * EactualY, * EactualZ;
-
-                    enemyX = mem::FindDMAAddy(entity, { 0x34 });
-                    EactualX = (float*)enemyX;
-
-                    enemyY = mem::FindDMAAddy(entity, { 0x38 });
-                    EactualY = (float*)enemyY;
-
-                    enemyZ = mem::FindDMAAddy(entity, { 0x3C });
-                    EactualZ = (float*)enemyZ;
-
-                    //std::cout << "player X Y Z: " << LocalPlayer->body.x << " " << LocalPlayer->body.y << " " << LocalPlayer->body.z << std::endl;
-                    //std::cout << "enemy X Y Z: " << *EactualX << " " << *EactualY << " " << *EactualZ << std::endl;
-                    //std::cout << "NukeCount: " << NukeCount << "\n";
-                    //std::cout << "entCount: " << *entCount << "\n";
-
-                    if (LocalPlayer->body.x == *EactualX && LocalPlayer->body.y == *EactualY && LocalPlayer->body.z == *EactualZ)
-                    {
-                        //break;
-                    }
-                    if (NukeCount <= *entCount)
-                    {
-                        //std::cout << "trying to teleport you!\n";
-                        *(float*)mem::FindDMAAddy(pLocalPlayer, { 0x34 }) = *EactualX;
-                        *(float*)mem::FindDMAAddy(pLocalPlayer, { 0x38 }) = *EactualY;
-                        *(float*)mem::FindDMAAddy(pLocalPlayer, { 0x3C }) = *EactualZ;
-                        Sleep(550);
-                    }
-                    else
-                    {
-                        //std::cout << "exitting!\n";
-                        bNuke = !bNuke;
-                        *(float*)mem::FindDMAAddy(pLocalPlayer, { 0x34 }) = oldX;
-                        *(float*)mem::FindDMAAddy(pLocalPlayer, { 0x38 }) = oldY;
-                        *(float*)mem::FindDMAAddy(pLocalPlayer, { 0x3C }) = oldZ;
                     }
                 }
             }
@@ -288,10 +281,10 @@ DWORD WINAPI HackThread(HMODULE hModule)
     return 0;
 }
 
-BOOL APIENTRY DllMain( HMODULE hModule,
-                       DWORD  ul_reason_for_call,
-                       LPVOID lpReserved
-                     )
+BOOL APIENTRY DllMain(HMODULE hModule,
+    DWORD  ul_reason_for_call,
+    LPVOID lpReserved
+)
 {
     switch (ul_reason_for_call)
     {

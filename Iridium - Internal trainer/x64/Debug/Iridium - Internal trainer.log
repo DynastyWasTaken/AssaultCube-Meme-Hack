@@ -1,0 +1,7 @@
+﻿  dllmain.cpp
+C:\Users\User\source\repos\DynastyWasTaken\AssaultCube-Meme-Hack\Iridium - Internal trainer\dllmain.cpp(309,1): fatal error C1010: непредвиденный конец файла во время поиска предкомпилированного заголовка. Возможно, вы забыли добавить директиву "#include "pch.h"" в источник.
+  mem.cpp
+C:\Users\User\source\repos\DynastyWasTaken\AssaultCube-Meme-Hack\Iridium - Internal trainer\mem.cpp(73,1): fatal error C1010: непредвиденный конец файла во время поиска предкомпилированного заголовка. Возможно, вы забыли добавить директиву "#include "pch.h"" в источник.
+  proc.cpp
+C:\Users\User\source\repos\DynastyWasTaken\AssaultCube-Meme-Hack\Iridium - Internal trainer\proc.cpp(66,1): fatal error C1010: непредвиденный конец файла во время поиска предкомпилированного заголовка. Возможно, вы забыли добавить директиву "#include "pch.h"" в источник.
+  Создание кода...
